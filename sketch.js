@@ -117,13 +117,13 @@ function grainBehavior() {
 
       if (canMoveDown) {
         nextFrame[nextRow][j] = state;
-        nextSpeeds[nextRow][j] = velocity;
+        nextSpeeds[nextRow][j] = velocity + gravity; // increment speed by gravity
       } else if (canMoveSideways) {
         nextFrame[i+1][nextCol] = state;
-        nextSpeeds[i+1][nextCol] = 1; // reset speed when moving sideways
+        nextSpeeds[i+1][nextCol] = velocity + gravity; // increment speed by gravity when moving sideways
       } else {
         nextFrame[i][j] = state;
-        nextSpeeds[i][j] = 1; // reset speed
+        nextSpeeds[i][j] = velocity + gravity; // increment speed by gravity
       }
     }
   }
@@ -132,7 +132,13 @@ function grainBehavior() {
 }
 
 function grainQuantityText() {
-  textSize(30);
+  if (windowHeight < 400 || windowWidth < 400) {
+    textSize(14);
+  } else if (windowHeight < 600 || windowWidth < 600) {
+    textSize(19);
+  } else {
+    textSize(25);
+  }
   fill(255);
   textAlign(CENTER, CENTER);
   if (!hasGrains) {
