@@ -3,9 +3,11 @@ const gravity = 0.1;
 
 let grid;
 let cols, rows;
-let grains = 0;
-let yellowValue = 0;
-let speeds;
+let grainColor = (49 - 48) * 9;
+let brushSize = 1; // how many cells to fill when dragging
+let speeds; // deals with acceleration
+let canvas;
+let hasGrains = false;
 
 function generateArray(rows, cols) {
   let array = new Array(rows);
@@ -19,12 +21,29 @@ function generateArray(rows, cols) {
 }
 
 function setup() {
-  createCanvas(400, 600);
+  let canvasHeight = windowHeight;
+  let canvasWidth = windowWidth;
+  canvas = createCanvas(canvasWidth, canvasHeight);
+  canvas.position(0, 0);
+
   colorMode(HSB, 360, 255, 255);
-  rows = height / w;
-  cols = width / w;
+  rows = floor(height / w);
+  cols = floor(width / w);
   grid = generateArray(rows, cols);
   speeds = generateArray(rows, cols);
+  hasGrains = false;
+}
+
+function windowResized() {
+  setup(); // reset canvas if window is resized
+}
+
+function keyPressed() {
+  if (keyCode >= 49 && keyCode <= 53) {
+    grainColor = (keyCode - 48) * 9; // 1 - 5 to change color
+  } else if (keyCode >= 55 && keyCode <= 57) {
+    brushSize = keyCode - 54; // 7 - 9 to change brush size
+  }
 }
 
 function mouseDragged() {
@@ -37,7 +56,6 @@ function mouseDragged() {
     mouseCol = cols - 1;
   }
 
-  let brushSize = 1;
   for (let i = -brushSize; i <= brushSize; i++) {
     for (let j = -brushSize; j <= brushSize; j++) {
       if(mouseRow + i < 0 || mouseRow + i >= rows || mouseCol + j < 0 || mouseCol + j >= cols || random(1) < 0.50) {
@@ -48,14 +66,12 @@ function mouseDragged() {
       if (grid[row][col] > 0) {
         continue;
       }
-      grid[row][col] = yellowValue;
+      grid[row][col] = grainColor;
       speeds[row][col] = 1; // start speed
     }
   }
-  grains++;
 
-  //yellowValue > 360 ? yellowValue = 0 : yellowValue += 1;
-  yellowValue = 60;
+  hasGrains = true;
 }
   
 function draw() {
@@ -64,7 +80,6 @@ function draw() {
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
       noStroke();
-
       if(grid[i][j] > 0) {
         fill(grid[i][j], 255, 255);
         let x = j*w;
@@ -73,7 +88,11 @@ function draw() {
       }
     }
   }
+  grainBehavior();
+  grainQuantityText();
+}
 
+function grainBehavior() {
   let nextFrame = generateArray(rows, cols);
   let nextSpeeds = generateArray(rows, cols);
 
@@ -85,7 +104,7 @@ function draw() {
       }
 
       let velocity = speeds[i][j];
-      velocity += gravity; // acceleration
+
       let nextRow = Math.min(i + Math.floor(velocity), rows - 1);
 
       let direction = Math.random() > 0.5 ? 1 : -1;
@@ -110,4 +129,15 @@ function draw() {
   }
   grid = nextFrame;
   speeds = nextSpeeds;
+}
+
+function grainQuantityText() {
+  textSize(30);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  if (!hasGrains) {
+    text("Click to add grains \n" + 
+        "Press key 1-5 to change grain color \n" +
+        "Press key 7-9 to change brush size", width / 2, height / 2);
+  }
 }
